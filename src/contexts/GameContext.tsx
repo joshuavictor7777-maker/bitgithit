@@ -35,8 +35,29 @@ type GameAction =
   | { type: 'STAND' }
   | { type: 'DOUBLE' }
   | { type: 'SPLIT' }
-  | { type: 'SURRENDER' }
-  | { type: 'UPDATE_COUNT'; card: Card };
+  | { type: 'SURRENDER' };
+
+const calculateTrueCount = (runningCount: number, cardsRemaining: number) => {
+  if (cardsRemaining <= 0) return runningCount;
+  const decksRemaining = Math.max(cardsRemaining / 52, 0.25);
+  return parseFloat((runningCount / decksRemaining).toFixed(1));
+};
+
+const updateCounts = (
+  runningCount: number,
+  cardsRemaining: number,
+  cards: Card[]
+) => {
+  const newRunningCount = cards.reduce((total, card) => total + card.hiLoValue, runningCount);
+  const newCardsRemaining = Math.max(cardsRemaining - cards.length, 0);
+  const newTrueCount = calculateTrueCount(newRunningCount, newCardsRemaining);
+
+  return {
+    runningCount: newRunningCount,
+    cardsRemaining: newCardsRemaining,
+    trueCount: newTrueCount,
+  };
+};
 
 const initialState: GameState = {
   deck: [],
@@ -68,19 +89,9 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         playerHands: [{ cards: [], value: 0, isSoft: false }],
         dealerHand: { cards: [], value: 0, isSoft: false },
         gamePhase: 'ready',
-        runningCount: state.runningCount,
-        trueCount: state.trueCount,
-        cardsRemaining: state.cardsRemaining,
-      };
-    
-    case 'UPDATE_COUNT':
-      const newRunningCount = state.runningCount + action.card.hiLoValue;
-      const newTrueCount = Math.round((newRunningCount / (state.cardsRemaining / 52)) * 10) / 10;
-      return {
-        ...state,
-        runningCount: newRunningCount,
-        trueCount: newTrueCount,
-        cardsRemaining: state.cardsRemaining - 1,
+        runningCount: 0,
+        trueCount: 0,
+        cardsRemaining: newDeck.length,
       };
     
     case 'DEAL_CARDS':
@@ -89,7 +100,14 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       const dealerCard1 = state.deck[1];
       const playerCard2 = state.deck[2];
       const dealerCard2 = state.deck[3];
-      
+
+      const dealCounts = updateCounts(state.runningCount, state.cardsRemaining, [
+        playerCard1,
+        dealerCard1,
+        playerCard2,
+        dealerCard2,
+      ]);
+
       const newPlayerHand = {
         cards: [playerCard1, playerCard2],
         value: calculateHandValue([playerCard1, playerCard2]),
@@ -111,6 +129,9 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         canDouble: true,
         canSplit: playerCard1.rank === playerCard2.rank,
         canSurrender: true,
+        runningCount: dealCounts.runningCount,
+        trueCount: dealCounts.trueCount,
+        cardsRemaining: dealCounts.cardsRemaining,
       };
     
     case 'HIT':
@@ -118,9 +139,11 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       const currentHand = state.playerHands[state.currentHandIndex];
       const newCards = [...currentHand.cards, hitCard];
       const newValue = calculateHandValue(newCards);
-      
-      const updatedHands = state.playerHands.map((hand, index) => 
-        index === state.currentHandIndex 
+
+      const hitCounts = updateCounts(state.runningCount, state.cardsRemaining, [hitCard]);
+
+      const updatedHands = state.playerHands.map((hand, index) =>
+        index === state.currentHandIndex
           ? { ...hand, cards: newCards, value: newValue, isSoft: newCards.some(card => card.rank === 'A') && newValue <= 21 }
           : hand
       );
@@ -133,7 +156,10 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         canSplit: false,
         canSurrender: false,
         gamePhase: newValue > 21 ? 'finished' : 'playing',
-        lastAction: newValue > 21 ? 'Bust!' : 'Hit'
+        lastAction: newValue > 21 ? 'Bust!' : 'Hit',
+        runningCount: hitCounts.runningCount,
+        trueCount: hitCounts.trueCount,
+        cardsRemaining: hitCounts.cardsRemaining,
       };
     
     case 'STAND':
@@ -141,12 +167,23 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       let dealerHandValue = calculateHandValue(dealerState.dealerHand.cards);
       let dealerCards = [...dealerState.dealerHand.cards];
       let dealerDeck = [...dealerState.deck];
+      let standCounts = {
+        runningCount: state.runningCount,
+        cardsRemaining: state.cardsRemaining,
+        trueCount: state.trueCount,
+      };
+      const dealerDrawnCards: Card[] = [];
 
       while (dealerHandValue < 17 && dealerDeck.length > 0) {
         const newCard = dealerDeck[0];
         dealerCards.push(newCard);
         dealerDeck = dealerDeck.slice(1);
         dealerHandValue = calculateHandValue(dealerCards);
+        dealerDrawnCards.push(newCard);
+      }
+
+      if (dealerDrawnCards.length > 0) {
+        standCounts = updateCounts(standCounts.runningCount, standCounts.cardsRemaining, dealerDrawnCards);
       }
 
       const playerValue = state.playerHands[state.currentHandIndex].value;
@@ -173,7 +210,10 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         },
         deck: dealerDeck,
         gamePhase: 'finished',
-        lastAction: result
+        lastAction: result,
+        runningCount: standCounts.runningCount,
+        trueCount: standCounts.trueCount,
+        cardsRemaining: standCounts.cardsRemaining,
       };
     
     case 'DOUBLE':
@@ -181,6 +221,8 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       const doubleHand = state.playerHands[state.currentHandIndex];
       const doubleCards = [...doubleHand.cards, doubleCard];
       const doubleValue = calculateHandValue(doubleCards);
+
+      const doubleCountsAfterPlayer = updateCounts(state.runningCount, state.cardsRemaining, [doubleCard]);
 
       const doubleUpdatedHands = state.playerHands.map((hand, index) =>
         index === state.currentHandIndex
@@ -194,7 +236,10 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         playerHands: doubleUpdatedHands,
         deck: afterDoubleDeck,
         gamePhase: 'dealer' as const,
-        lastAction: 'Double Down'
+        lastAction: 'Double Down',
+        runningCount: doubleCountsAfterPlayer.runningCount,
+        trueCount: doubleCountsAfterPlayer.trueCount,
+        cardsRemaining: doubleCountsAfterPlayer.cardsRemaining,
       };
 
       if (doubleValue > 21) {
@@ -207,12 +252,28 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
 
       let doubleDealerHandValue = calculateHandValue(afterDoubleState.dealerHand.cards);
       let doubleDealerCards = [...afterDoubleState.dealerHand.cards];
+      const doubleDealerDrawnCards: Card[] = [];
 
       while (doubleDealerHandValue < 17 && afterDoubleDeck.length > 0) {
         const newCard = afterDoubleDeck[0];
         doubleDealerCards.push(newCard);
         afterDoubleDeck = afterDoubleDeck.slice(1);
         doubleDealerHandValue = calculateHandValue(doubleDealerCards);
+        doubleDealerDrawnCards.push(newCard);
+      }
+
+      let doubleCountsFinal = {
+        runningCount: afterDoubleState.runningCount,
+        cardsRemaining: afterDoubleState.cardsRemaining,
+        trueCount: afterDoubleState.trueCount,
+      };
+
+      if (doubleDealerDrawnCards.length > 0) {
+        doubleCountsFinal = updateCounts(
+          doubleCountsFinal.runningCount,
+          doubleCountsFinal.cardsRemaining,
+          doubleDealerDrawnCards
+        );
       }
 
       let doubleResult = '';
@@ -235,7 +296,10 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         },
         deck: afterDoubleDeck,
         gamePhase: 'finished',
-        lastAction: doubleResult
+        lastAction: doubleResult,
+        runningCount: doubleCountsFinal.runningCount,
+        trueCount: doubleCountsFinal.trueCount,
+        cardsRemaining: doubleCountsFinal.cardsRemaining,
       };
     
     default:
