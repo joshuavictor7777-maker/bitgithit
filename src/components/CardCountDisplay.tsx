@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calculator, TrendingUp, Eye } from 'lucide-react';
+import { Calculator } from 'lucide-react';
 import { useGame } from '../contexts/GameContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -11,72 +11,49 @@ export const CardCountDisplay: React.FC = () => {
   const getCountColor = (count: number) => {
     if (count > 2) return 'text-green-500';
     if (count < -2) return 'text-red-500';
-    return 'text-blue-600';
-  };
-
-  const getAdvantage = (trueCount: number) => {
-    const advantage = (trueCount * 0.5).toFixed(1);
-    return advantage;
+    return 'text-blue-500';
   };
 
   return (
-    <div className={`${themeClasses.cardBg} backdrop-blur-sm border ${themeClasses.border} rounded-xl p-6 shadow-lg`}>
-      <h3 className={`${themeClasses.text} text-lg font-semibold mb-4 flex items-center`}>
-        <Calculator className="h-5 w-5 mr-2 text-green-500" />
-        Card Count (Hi-Lo)
-      </h3>
-      
-      <div className="space-y-4">
-        <div className={`${themeClasses.surface} rounded-lg p-4`}>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <div className={`${themeClasses.textSecondary} text-sm`}>Running Count</div>
-              <div className={`text-2xl font-bold ${getCountColor(gameState.runningCount)}`}>
-                {gameState.runningCount > 0 ? '+' : ''}{gameState.runningCount}
-              </div>
+    <div className={`${themeClasses.cardBg} border ${themeClasses.border} rounded-lg p-4`}>
+      <div className="flex items-center space-x-2 mb-3">
+        <Calculator className="h-5 w-5 text-green-500" />
+        <h3 className={`${themeClasses.text} font-semibold`}>Card Count</h3>
+      </div>
+
+      <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          <div className={`${themeClasses.surface} rounded-lg p-3 text-center`}>
+            <div className={`text-xs ${themeClasses.textSecondary} mb-1`}>Running</div>
+            <div className={`text-2xl font-bold ${getCountColor(gameState.runningCount)}`}>
+              {gameState.runningCount > 0 ? '+' : ''}{gameState.runningCount}
             </div>
-            <div>
-              <div className={`${themeClasses.textSecondary} text-sm`}>True Count</div>
-              <div className={`text-2xl font-bold ${getCountColor(gameState.trueCount)}`}>
-                {gameState.trueCount > 0 ? '+' : ''}{gameState.trueCount}
-              </div>
+          </div>
+          <div className={`${themeClasses.surface} rounded-lg p-3 text-center`}>
+            <div className={`text-xs ${themeClasses.textSecondary} mb-1`}>True</div>
+            <div className={`text-2xl font-bold ${getCountColor(gameState.trueCount)}`}>
+              {gameState.trueCount > 0 ? '+' : ''}{gameState.trueCount.toFixed(1)}
             </div>
           </div>
         </div>
 
-        <div className={`${themeClasses.surface} rounded-lg p-4`}>
-          <div className="flex items-center justify-between mb-2">
-            <span className={`${themeClasses.textSecondary} text-sm`}>Player Advantage</span>
-            <TrendingUp className="h-4 w-4 text-blue-500" />
-          </div>
-          <div className={`text-lg font-semibold ${getCountColor(gameState.trueCount)}`}>
-            {getAdvantage(gameState.trueCount)}%
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className={`${themeClasses.textSecondary}`}>Cards Remaining</span>
-            <span className={`${themeClasses.text}`}>{gameState.cardsRemaining}</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-green-500 h-2 rounded-full transition-all duration-300"
+        <div className={`${themeClasses.surface} rounded-lg p-3`}>
+          <div className={`text-xs ${themeClasses.textSecondary} mb-2`}>Deck Remaining</div>
+          <div className="w-full bg-gray-300 rounded-full h-2">
+            <div
+              className="bg-green-500 h-2 rounded-full transition-all"
               style={{ width: `${(gameState.cardsRemaining / 312) * 100}%` }}
             />
           </div>
+          <div className={`text-xs ${themeClasses.textSecondary} mt-1`}>
+            {gameState.cardsRemaining}/312 cards left
+          </div>
         </div>
 
-        <div className={`${themeClasses.surface} border ${themeClasses.border} rounded-lg p-3`}>
-          <div className="flex items-center space-x-2 mb-1">
-            <Eye className="h-4 w-4 text-blue-400" />
-            <span className={`text-blue-500 text-sm font-medium`}>Strategy Guidance</span>
-          </div>
-          <p className={`text-blue-500 text-xs`}>
-            {gameState.trueCount >= 2 ? 'Favorable conditions' :
-             gameState.trueCount <= -2 ? 'Unfavorable conditions' :
-             'Neutral conditions'}
-          </p>
+        <div className={`text-xs ${themeClasses.text} p-2 rounded-lg ${themeClasses.surface}`}>
+          {gameState.trueCount >= 2 ? '✓ Favorable' :
+           gameState.trueCount <= -2 ? '✗ Unfavorable' :
+           '≈ Neutral'}
         </div>
       </div>
     </div>
