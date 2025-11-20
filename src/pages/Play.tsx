@@ -6,6 +6,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { Eye, EyeOff } from 'lucide-react';
 import { ActionFeedback } from '../components/ActionFeedback';
 import { StrategyFeedback } from '../utils/strategy';
+import { BasicStrategyModal } from '../components/BasicStrategyModal';
 
 export const Play: React.FC = () => {
   const { getThemeClasses } = useTheme();
@@ -13,6 +14,7 @@ export const Play: React.FC = () => {
   const [showStrategy, setShowStrategy] = useState(true);
   const [showCounting, setShowCounting] = useState(false);
   const [decisionFeedback, setDecisionFeedback] = useState<StrategyFeedback | null>(null);
+  const [showStrategyChart, setShowStrategyChart] = useState(false);
 
   useEffect(() => {
     if (!decisionFeedback) return;
@@ -49,6 +51,12 @@ export const Play: React.FC = () => {
               {showCounting ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
               <span>Count</span>
             </button>
+            <button
+              onClick={() => setShowStrategyChart(true)}
+              className={`${themeClasses.cardBg} border ${themeClasses.border} ${themeClasses.text} px-3 py-1.5 rounded-lg text-sm hover:shadow-md transition`}
+            >
+              View Full Chart
+            </button>
           </div>
         </div>
 
@@ -68,6 +76,8 @@ export const Play: React.FC = () => {
             {showStrategy && <StrategyCheat />}
           </div>
         </div>
+
+        <BasicStrategyModal open={showStrategyChart} onClose={() => setShowStrategyChart(false)} />
       </div>
     </div>
   );
