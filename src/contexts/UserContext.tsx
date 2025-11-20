@@ -24,6 +24,8 @@ export interface UserStats {
   handsPlayed: number;
   winRate: number;
   strategyAccuracy: number;
+  strategyDecisions?: number;
+  strategyCorrect?: number;
   countingAccuracy: number;
   recentSessions: Session[];
 }
@@ -59,6 +61,8 @@ const defaultUser: User = {
     handsPlayed: 0,
     winRate: 0,
     strategyAccuracy: 0,
+    strategyDecisions: 0,
+    strategyCorrect: 0,
     countingAccuracy: 0,
     recentSessions: [],
   },
@@ -95,6 +99,21 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     localStorage.setItem('ratio-user', JSON.stringify(user));
   }, [user]);
+
+  useEffect(() => {
+    const handleStorage = () => {
+      const savedUser = localStorage.getItem('ratio-user');
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, []);
 
   const updateProfile = (data: Partial<User>) => {
     setUser(prev => ({ ...prev, ...data }));
