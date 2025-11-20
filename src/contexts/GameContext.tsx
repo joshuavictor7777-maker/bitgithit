@@ -23,6 +23,7 @@ export interface GameState {
   trueCount: number;
   cardsRemaining: number;
   lastAction: string;
+  handResults: ('win' | 'loss' | 'push')[];
   canDouble: boolean;
   canSplit: boolean;
   canSurrender: boolean;
@@ -35,8 +36,99 @@ type GameAction =
   | { type: 'STAND' }
   | { type: 'DOUBLE' }
   | { type: 'SPLIT' }
-  | { type: 'SURRENDER' }
-  | { type: 'UPDATE_COUNT'; card: Card };
+  | { type: 'SURRENDER' };
+
+const calculateTrueCount = (runningCount: number, cardsRemaining: number) => {
+  if (cardsRemaining <= 0) return runningCount;
+  const decksRemaining = Math.max(cardsRemaining / 52, 0.25);
+  return parseFloat((runningCount / decksRemaining).toFixed(1));
+};
+
+const updateCounts = (
+  runningCount: number,
+  cardsRemaining: number,
+  cards: Card[]
+) => {
+  const newRunningCount = cards.reduce((total, card) => total + card.hiLoValue, runningCount);
+  const newCardsRemaining = Math.max(cardsRemaining - cards.length, 0);
+  const newTrueCount = calculateTrueCount(newRunningCount, newCardsRemaining);
+
+  return {
+    runningCount: newRunningCount,
+    cardsRemaining: newCardsRemaining,
+    trueCount: newTrueCount,
+  };
+};
+
+const getHandOptions = (hand: Hand) => ({
+  canDouble: hand.cards.length === 2,
+  canSplit: hand.cards.length === 2 && hand.cards[0].rank === hand.cards[1].rank,
+  canSurrender: hand.cards.length === 2,
+});
+
+interface FinalizeRoundArgs {
+  state: GameState;
+  updatedHands: Hand[];
+  deck: Card[];
+  countState: { runningCount: number; cardsRemaining: number; trueCount: number };
+  endMessage: string;
+}
+
+const finalizeRound = ({ state, updatedHands, deck, countState, endMessage }: FinalizeRoundArgs): GameState => {
+  let dealerCards = [...state.dealerHand.cards];
+  let dealerDeck = [...deck];
+  let dealerHandValue = calculateHandValue(dealerCards);
+  const dealerDrawnCards: Card[] = [];
+  let roundCounts = countState;
+
+  while (dealerHandValue < 17 && dealerDeck.length > 0) {
+    const newCard = dealerDeck[0];
+    dealerCards.push(newCard);
+    dealerDeck = dealerDeck.slice(1);
+    dealerHandValue = calculateHandValue(dealerCards);
+    dealerDrawnCards.push(newCard);
+  }
+
+  if (dealerDrawnCards.length > 0) {
+    roundCounts = updateCounts(countState.runningCount, countState.cardsRemaining, dealerDrawnCards);
+  }
+
+  const handResults = updatedHands.map(hand => {
+    if (hand.value > 21) return 'loss';
+    if (dealerHandValue > 21) return 'win';
+    if (hand.value > dealerHandValue) return 'win';
+    if (hand.value < dealerHandValue) return 'loss';
+    return 'push';
+  });
+
+  const resultSummary = handResults
+    .map((result, idx) => {
+      const label = result === 'win' ? 'Win' : result === 'loss' ? 'Lose' : 'Push';
+      return `Hand ${idx + 1}: ${label}`;
+    })
+    .join(' • ');
+
+  return {
+    ...state,
+    playerHands: updatedHands,
+    dealerHand: {
+      cards: dealerCards,
+      value: dealerHandValue,
+      isSoft: dealerCards.some(card => card.rank === 'A') && dealerHandValue <= 21,
+    },
+    deck: dealerDeck,
+    gamePhase: 'finished',
+    lastAction: `${endMessage}. ${resultSummary}`.trim(),
+    runningCount: roundCounts.runningCount,
+    trueCount: roundCounts.trueCount,
+    cardsRemaining: roundCounts.cardsRemaining,
+    handResults,
+    currentHandIndex: 0,
+    canDouble: false,
+    canSplit: false,
+    canSurrender: false,
+  };
+};
 
 const initialState: GameState = {
   deck: [],
@@ -48,6 +140,7 @@ const initialState: GameState = {
   trueCount: 0,
   cardsRemaining: 312, // 6 decks
   lastAction: '',
+  handResults: [],
   canDouble: false,
   canSplit: false,
   canSurrender: false,
@@ -68,19 +161,10 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         playerHands: [{ cards: [], value: 0, isSoft: false }],
         dealerHand: { cards: [], value: 0, isSoft: false },
         gamePhase: 'ready',
-        runningCount: state.runningCount,
-        trueCount: state.trueCount,
-        cardsRemaining: state.cardsRemaining,
-      };
-    
-    case 'UPDATE_COUNT':
-      const newRunningCount = state.runningCount + action.card.hiLoValue;
-      const newTrueCount = Math.round((newRunningCount / (state.cardsRemaining / 52)) * 10) / 10;
-      return {
-        ...state,
-        runningCount: newRunningCount,
-        trueCount: newTrueCount,
-        cardsRemaining: state.cardsRemaining - 1,
+        runningCount: 0,
+        trueCount: 0,
+        cardsRemaining: newDeck.length,
+        handResults: [],
       };
     
     case 'DEAL_CARDS':
@@ -89,7 +173,14 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       const dealerCard1 = state.deck[1];
       const playerCard2 = state.deck[2];
       const dealerCard2 = state.deck[3];
-      
+
+      const dealCounts = updateCounts(state.runningCount, state.cardsRemaining, [
+        playerCard1,
+        dealerCard1,
+        playerCard2,
+        dealerCard2,
+      ]);
+
       const newPlayerHand = {
         cards: [playerCard1, playerCard2],
         value: calculateHandValue([playerCard1, playerCard2]),
@@ -108,9 +199,10 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         dealerHand: newDealerHand,
         deck: state.deck.slice(4),
         gamePhase: 'playing',
-        canDouble: true,
-        canSplit: playerCard1.rank === playerCard2.rank,
-        canSurrender: true,
+        ...getHandOptions(newPlayerHand),
+        runningCount: dealCounts.runningCount,
+        trueCount: dealCounts.trueCount,
+        cardsRemaining: dealCounts.cardsRemaining,
       };
     
     case 'HIT':
@@ -118,13 +210,43 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       const currentHand = state.playerHands[state.currentHandIndex];
       const newCards = [...currentHand.cards, hitCard];
       const newValue = calculateHandValue(newCards);
-      
-      const updatedHands = state.playerHands.map((hand, index) => 
-        index === state.currentHandIndex 
+
+      const hitCounts = updateCounts(state.runningCount, state.cardsRemaining, [hitCard]);
+
+      const updatedHands = state.playerHands.map((hand, index) =>
+        index === state.currentHandIndex
           ? { ...hand, cards: newCards, value: newValue, isSoft: newCards.some(card => card.rank === 'A') && newValue <= 21 }
           : hand
       );
       
+      if (newValue > 21) {
+        if (state.currentHandIndex < state.playerHands.length - 1) {
+          const nextIndex = state.currentHandIndex + 1;
+          const nextHand = state.playerHands[nextIndex];
+
+          return {
+            ...state,
+            playerHands: updatedHands,
+            deck: state.deck.slice(1),
+            currentHandIndex: nextIndex,
+            gamePhase: 'playing',
+            lastAction: `Hand ${state.currentHandIndex + 1} busts. Playing hand ${nextIndex + 1}.`,
+            runningCount: hitCounts.runningCount,
+            trueCount: hitCounts.trueCount,
+            cardsRemaining: hitCounts.cardsRemaining,
+            ...getHandOptions(nextHand),
+          };
+        }
+
+        return finalizeRound({
+          state,
+          updatedHands,
+          deck: state.deck.slice(1),
+          countState: hitCounts,
+          endMessage: 'Bust! Evaluating results.',
+        });
+      }
+
       return {
         ...state,
         playerHands: updatedHands,
@@ -132,49 +254,38 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         canDouble: false,
         canSplit: false,
         canSurrender: false,
-        gamePhase: newValue > 21 ? 'finished' : 'playing',
-        lastAction: newValue > 21 ? 'Bust!' : 'Hit'
+        gamePhase: 'playing',
+        lastAction: 'Hit',
+        runningCount: hitCounts.runningCount,
+        trueCount: hitCounts.trueCount,
+        cardsRemaining: hitCounts.cardsRemaining,
       };
     
     case 'STAND':
-      let dealerState = { ...state, gamePhase: 'dealer' as const, lastAction: 'Stand' };
-      let dealerHandValue = calculateHandValue(dealerState.dealerHand.cards);
-      let dealerCards = [...dealerState.dealerHand.cards];
-      let dealerDeck = [...dealerState.deck];
+      if (state.currentHandIndex < state.playerHands.length - 1) {
+        const nextIndex = state.currentHandIndex + 1;
+        const nextHand = state.playerHands[nextIndex];
 
-      while (dealerHandValue < 17 && dealerDeck.length > 0) {
-        const newCard = dealerDeck[0];
-        dealerCards.push(newCard);
-        dealerDeck = dealerDeck.slice(1);
-        dealerHandValue = calculateHandValue(dealerCards);
+        return {
+          ...state,
+          currentHandIndex: nextIndex,
+          gamePhase: 'playing',
+          lastAction: `Hand ${state.currentHandIndex + 1} stands. Playing hand ${nextIndex + 1}.`,
+          ...getHandOptions(nextHand),
+        };
       }
 
-      const playerValue = state.playerHands[state.currentHandIndex].value;
-      let result = '';
-
-      if (playerValue > 21) {
-        result = 'Bust! You lose.';
-      } else if (dealerHandValue > 21) {
-        result = 'Dealer busts! You win!';
-      } else if (playerValue > dealerHandValue) {
-        result = 'You win!';
-      } else if (playerValue < dealerHandValue) {
-        result = 'Dealer wins.';
-      } else {
-        result = 'Push! It\'s a tie.';
-      }
-
-      return {
-        ...dealerState,
-        dealerHand: {
-          cards: dealerCards,
-          value: dealerHandValue,
-          isSoft: dealerCards.some(card => card.rank === 'A') && dealerHandValue <= 21
+      return finalizeRound({
+        state,
+        updatedHands: state.playerHands,
+        deck: state.deck,
+        countState: {
+          runningCount: state.runningCount,
+          cardsRemaining: state.cardsRemaining,
+          trueCount: state.trueCount,
         },
-        deck: dealerDeck,
-        gamePhase: 'finished',
-        lastAction: result
-      };
+        endMessage: 'Stand',
+      });
     
     case 'DOUBLE':
       const doubleCard = state.deck[0];
@@ -182,60 +293,86 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       const doubleCards = [...doubleHand.cards, doubleCard];
       const doubleValue = calculateHandValue(doubleCards);
 
+      const doubleCountsAfterPlayer = updateCounts(state.runningCount, state.cardsRemaining, [doubleCard]);
+
       const doubleUpdatedHands = state.playerHands.map((hand, index) =>
         index === state.currentHandIndex
           ? { ...hand, cards: doubleCards, value: doubleValue, isSoft: doubleCards.some(card => card.rank === 'A') && doubleValue <= 21 }
           : hand
       );
 
+      const doubledBust = doubleValue > 21;
+
       let afterDoubleDeck = state.deck.slice(1);
-      let afterDoubleState = {
+      const doubleBaseState = {
         ...state,
         playerHands: doubleUpdatedHands,
         deck: afterDoubleDeck,
-        gamePhase: 'dealer' as const,
-        lastAction: 'Double Down'
+        runningCount: doubleCountsAfterPlayer.runningCount,
+        trueCount: doubleCountsAfterPlayer.trueCount,
+        cardsRemaining: doubleCountsAfterPlayer.cardsRemaining,
       };
 
-      if (doubleValue > 21) {
+      if (state.currentHandIndex < state.playerHands.length - 1) {
+        const nextIndex = state.currentHandIndex + 1;
+        const nextHand = state.playerHands[nextIndex];
+
         return {
-          ...afterDoubleState,
-          gamePhase: 'finished',
-          lastAction: 'Bust! You lose.'
+          ...doubleBaseState,
+          currentHandIndex: nextIndex,
+          gamePhase: 'playing',
+          lastAction: `Hand ${state.currentHandIndex + 1} ${doubledBust ? 'busts after doubling' : 'doubles'}. Playing hand ${nextIndex + 1}.`,
+          ...getHandOptions(nextHand),
         };
       }
 
-      let doubleDealerHandValue = calculateHandValue(afterDoubleState.dealerHand.cards);
-      let doubleDealerCards = [...afterDoubleState.dealerHand.cards];
+      return finalizeRound({
+        state: doubleBaseState,
+        updatedHands: doubleUpdatedHands,
+        deck: afterDoubleDeck,
+        countState: doubleCountsAfterPlayer,
+        endMessage: doubledBust ? 'Bust after double down' : 'Double Down',
+      });
 
-      while (doubleDealerHandValue < 17 && afterDoubleDeck.length > 0) {
-        const newCard = afterDoubleDeck[0];
-        doubleDealerCards.push(newCard);
-        afterDoubleDeck = afterDoubleDeck.slice(1);
-        doubleDealerHandValue = calculateHandValue(doubleDealerCards);
+    case 'SPLIT':
+      const handToSplit = state.playerHands[state.currentHandIndex];
+      if (handToSplit.cards.length !== 2 || handToSplit.cards[0].rank !== handToSplit.cards[1].rank || state.deck.length < 2) {
+        return state;
       }
 
-      let doubleResult = '';
-      if (doubleDealerHandValue > 21) {
-        doubleResult = 'Dealer busts! You win!';
-      } else if (doubleValue > doubleDealerHandValue) {
-        doubleResult = 'You win!';
-      } else if (doubleValue < doubleDealerHandValue) {
-        doubleResult = 'Dealer wins.';
-      } else {
-        doubleResult = 'Push! It\'s a tie.';
-      }
+      const [firstCard, secondCard] = handToSplit.cards;
+      const splitCard1 = state.deck[0];
+      const splitCard2 = state.deck[1];
+
+      const firstHand: Hand = {
+        cards: [firstCard, splitCard1],
+        value: calculateHandValue([firstCard, splitCard1]),
+        isSoft: [firstCard, splitCard1].some(card => card.rank === 'A')
+      };
+
+      const secondHand: Hand = {
+        cards: [secondCard, splitCard2],
+        value: calculateHandValue([secondCard, splitCard2]),
+        isSoft: [secondCard, splitCard2].some(card => card.rank === 'A')
+      };
+
+      const postSplitCounts = updateCounts(state.runningCount, state.cardsRemaining, [splitCard1, splitCard2]);
+
+      const newHands = [firstHand, secondHand];
+      const firstHandOptions = getHandOptions(firstHand);
 
       return {
-        ...afterDoubleState,
-        dealerHand: {
-          cards: doubleDealerCards,
-          value: doubleDealerHandValue,
-          isSoft: doubleDealerCards.some(card => card.rank === 'A') && doubleDealerHandValue <= 21
-        },
-        deck: afterDoubleDeck,
-        gamePhase: 'finished',
-        lastAction: doubleResult
+        ...state,
+        playerHands: newHands,
+        deck: state.deck.slice(2),
+        currentHandIndex: 0,
+        gamePhase: 'playing',
+        lastAction: `Split! Playing hand 1 of ${newHands.length}.`,
+        runningCount: postSplitCounts.runningCount,
+        trueCount: postSplitCounts.trueCount,
+        cardsRemaining: postSplitCounts.cardsRemaining,
+        ...firstHandOptions,
+        handResults: [],
       };
     
     default:
@@ -306,27 +443,31 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   useEffect(() => {
-    if (gameState.gamePhase === 'finished' && gameState.lastAction) {
+    if (gameState.gamePhase === 'finished' && gameState.handResults.length > 0) {
       const statsData = JSON.parse(localStorage.getItem('ratio-user') || '{}');
+
       if (statsData.stats) {
-        const isWin = gameState.lastAction.includes('win') && !gameState.lastAction.includes('Dealer wins');
-        const isLoss = gameState.lastAction.includes('lose') || gameState.lastAction.includes('Bust') || gameState.lastAction.includes('Dealer wins');
+        const winsThisRound = gameState.handResults.filter(result => result === 'win').length;
+        const lossesThisRound = gameState.handResults.filter(result => result === 'loss').length;
+        const handsThisRound = gameState.handResults.length;
+
+        const prevHandsPlayed = statsData.stats.handsPlayed || 0;
+        const prevWinRate = statsData.stats.winRate || 0;
+        const prevWins = Math.round(prevHandsPlayed * prevWinRate);
+
+        const updatedHandsPlayed = prevHandsPlayed + handsThisRound;
+        const updatedWins = prevWins + winsThisRound;
 
         statsData.stats.gamesPlayed = (statsData.stats.gamesPlayed || 0) + 1;
-        statsData.stats.handsPlayed = (statsData.stats.handsPlayed || 0) + 1;
+        statsData.stats.handsPlayed = updatedHandsPlayed;
+        statsData.stats.winRate = updatedHandsPlayed > 0 ? updatedWins / updatedHandsPlayed : 0;
 
-        if (isWin) {
-          const wins = ((statsData.stats.gamesPlayed - 1) * (statsData.stats.winRate || 0)) + 1;
-          statsData.stats.winRate = wins / statsData.stats.gamesPlayed;
-        } else if (isLoss) {
-          const wins = (statsData.stats.gamesPlayed - 1) * (statsData.stats.winRate || 0);
-          statsData.stats.winRate = wins / statsData.stats.gamesPlayed;
-        }
+        const sessionResult = winsThisRound > lossesThisRound ? 'win' : lossesThisRound > winsThisRound ? 'loss' : 'push';
 
         const newSession = {
           date: new Date().toISOString(),
-          handsPlayed: 1,
-          result: isWin ? 'win' : isLoss ? 'loss' : 'push',
+          handsPlayed: handsThisRound,
+          result: sessionResult,
           netWin: 0
         };
 
@@ -339,7 +480,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         window.dispatchEvent(new Event('storage'));
       }
     }
-  }, [gameState.gamePhase, gameState.lastAction]);
+  }, [gameState.gamePhase, gameState.handResults]);
 
   return (
     <GameContext.Provider value={{ gameState, dispatch }}>
