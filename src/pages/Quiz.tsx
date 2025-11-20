@@ -20,6 +20,18 @@ export const Quiz: React.FC = () => {
   const [bestStreak, setBestStreak] = useState(0);
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
 
+  const loadNewQuestion = (
+    type: QuizQuestion['category'] = quizType,
+    level: QuizQuestion['difficulty'] = difficulty
+  ) => {
+    const question = generateQuizQuestion(type, level);
+    setCurrentQuestion(question);
+    setSelectedAnswer('');
+    setShowResult(false);
+    setTimeLeft(level === 'easy' ? 45 : level === 'medium' ? 30 : 15);
+    setIsTimerActive(true);
+  };
+
   // Load saved quiz state
   useEffect(() => {
     const savedState = localStorage.getItem('ratio-quiz-state');
@@ -40,7 +52,11 @@ export const Quiz: React.FC = () => {
 
   useEffect(() => {
     loadNewQuestion();
-  }, [quizType, difficulty]);
+  }, []);
+
+  useEffect(() => {
+    loadNewQuestion(quizType, difficulty);
+  }, [difficulty]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -54,13 +70,11 @@ export const Quiz: React.FC = () => {
     return () => clearInterval(interval);
   }, [isTimerActive, timeLeft, showResult, selectedAnswer]);
 
-  const loadNewQuestion = () => {
-    const question = generateQuizQuestion(quizType, difficulty);
-    setCurrentQuestion(question);
-    setSelectedAnswer('');
-    setShowResult(false);
-    setTimeLeft(difficulty === 'easy' ? 45 : difficulty === 'medium' ? 30 : 15);
-    setIsTimerActive(true);
+  const handleQuizTypeChange = (newType: QuizQuestion['category']) => {
+    if (newType === quizType) return;
+
+    setQuizType(newType);
+    loadNewQuestion(newType, difficulty);
   };
 
   const handleAnswerSubmit = () => {
@@ -115,7 +129,7 @@ export const Quiz: React.FC = () => {
           <div className="flex items-center space-x-4">
             <select
               value={quizType}
-              onChange={(e) => setQuizType(e.target.value as any)}
+              onChange={(e) => handleQuizTypeChange(e.target.value as QuizQuestion['category'])}
               className={`${themeClasses.cardBg} border ${themeClasses.border} ${themeClasses.text} rounded-lg px-4 py-2`}
             >
               <option value="basic-strategy">Basic Strategy</option>
