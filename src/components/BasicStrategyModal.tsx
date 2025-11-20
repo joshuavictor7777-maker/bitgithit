@@ -57,13 +57,23 @@ export const BasicStrategyModal: React.FC<BasicStrategyModalProps> = ({ open, on
 
   if (!open) return null;
 
+  const actionClasses: Record<string, string> = {
+    S: 'text-green-700 dark:text-green-300 bg-green-500/10 font-extrabold',
+    H: 'text-orange-700 dark:text-orange-300 bg-orange-500/10 font-extrabold',
+    D: 'text-blue-700 dark:text-blue-300 bg-blue-500/10 font-extrabold',
+    P: 'text-purple-700 dark:text-purple-300 bg-purple-500/10 font-extrabold',
+    Ds: 'text-slate-700 dark:text-slate-200 bg-slate-500/10 font-extrabold',
+  };
+
   const renderRow = (row: StrategyRow) => (
     <tr key={row.label}>
       <td className={`text-xs sm:text-sm font-semibold px-2 py-1 ${themeClasses.text}`}>{row.label}</td>
       {row.actions.map((action, idx) => (
         <td
           key={idx}
-          className="text-center text-xs sm:text-sm font-medium px-2 py-1 border border-slate-200 dark:border-slate-700"
+          className={`text-center text-xs sm:text-sm font-semibold px-2 py-1 border border-slate-200 dark:border-slate-700 rounded ${
+            actionClasses[action] ?? ''
+          }`}
         >
           {action}
         </td>
@@ -90,11 +100,11 @@ export const BasicStrategyModal: React.FC<BasicStrategyModalProps> = ({ open, on
             <h2 className={`text-2xl font-semibold ${themeClasses.text}`}>Chart Reference</h2>
           </div>
           <div className="text-xs sm:text-sm space-x-2 flex items-center">
-            <span className="px-2 py-1 rounded bg-green-500/15 text-green-700 font-semibold">S = Stand</span>
-            <span className="px-2 py-1 rounded bg-orange-500/15 text-orange-700 font-semibold">H = Hit</span>
-            <span className="px-2 py-1 rounded bg-blue-500/15 text-blue-700 font-semibold">D = Double</span>
-            <span className="px-2 py-1 rounded bg-purple-500/15 text-purple-700 font-semibold">P = Split</span>
-            <span className="px-2 py-1 rounded bg-slate-500/15 text-slate-700 font-semibold">Ds = Double if possible, otherwise Stand</span>
+            <span className="px-2 py-1 rounded bg-green-500/15 text-green-700 dark:text-green-200 font-semibold">S = Stand</span>
+            <span className="px-2 py-1 rounded bg-orange-500/15 text-orange-700 dark:text-orange-200 font-semibold">H = Hit</span>
+            <span className="px-2 py-1 rounded bg-blue-500/15 text-blue-700 dark:text-blue-200 font-semibold">D = Double</span>
+            <span className="px-2 py-1 rounded bg-purple-500/15 text-purple-700 dark:text-purple-200 font-semibold">P = Split</span>
+            <span className="px-2 py-1 rounded bg-slate-500/15 text-slate-700 dark:text-slate-100 font-semibold">Ds = Double if possible, otherwise Stand</span>
           </div>
         </div>
 
