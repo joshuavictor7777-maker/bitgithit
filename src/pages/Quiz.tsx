@@ -19,6 +19,19 @@ export const Quiz: React.FC = () => {
   const [streak, setStreak] = useState(0);
   const [timeLeft, setTimeLeft] = useState(30);
 
+  const loadNewQuestion = (
+    type: QuizQuestion['category'] = quizType,
+    level: QuizQuestion['difficulty'] = difficulty
+  ) => {
+    const question = generateQuizQuestion(type, level);
+    setCurrentQuestion(question);
+    setSelectedAnswer('');
+    setShowResult(false);
+    setTimeLeft(level === 'easy' ? 45 : level === 'medium' ? 30 : 15);
+    setIsTimerActive(true);
+  };
+
+  // Load saved quiz state
   useEffect(() => {
     loadQuestion();
   }, []);
@@ -36,22 +49,21 @@ export const Quiz: React.FC = () => {
     loadNewQuestion(quizType, difficulty);
   }, [difficulty]);
 
+  useEffect(() => {
+    loadNewQuestion(quizType, difficulty);
+  }, [difficulty]);
+
     if (!showResult) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
     }
   }, [timeLeft, showResult]);
 
-  const loadNewQuestion = (
-    type: QuizQuestion['category'] = quizType,
-    level: QuizQuestion['difficulty'] = difficulty
-  ) => {
-    const question = generateQuizQuestion(type, level);
-    setCurrentQuestion(question);
-    setSelectedAnswer('');
-    setShowResult(false);
-    setTimeLeft(level === 'easy' ? 45 : level === 'medium' ? 30 : 15);
-    setIsTimerActive(true);
+  const handleQuizTypeChange = (newType: QuizQuestion['category']) => {
+    if (newType === quizType) return;
+
+    setQuizType(newType);
+    loadNewQuestion(newType, difficulty);
   };
 
   const handleQuizTypeChange = (newType: QuizQuestion['category']) => {
