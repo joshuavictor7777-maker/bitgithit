@@ -41,7 +41,7 @@ export const BlackjackGame: React.FC<BlackjackGameProps> = ({ onDecisionFeedback
 
   const currentPlayerHand = gameState.playerHands[gameState.currentHandIndex];
   const hasSplitHands = gameState.playerHands.length > 1;
-  const showSplitLayout = hasSplitHands || gameState.canSplit;
+  const showSplitLayout = hasSplitHands;
   const showDealerSecondCard = gameState.gamePhase === 'dealer' || gameState.gamePhase === 'finished';
 
   return (

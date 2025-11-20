@@ -27,6 +27,7 @@ export interface GameState {
   canDouble: boolean;
   canSplit: boolean;
   canSurrender: boolean;
+  hasSplit: boolean;
 }
 
 type GameAction =
@@ -101,12 +102,21 @@ const finalizeRound = ({ state, updatedHands, deck, countState, endMessage }: Fi
     return 'push';
   });
 
-  const resultSummary = handResults
-    .map((result, idx) => {
-      const label = result === 'win' ? 'Win' : result === 'loss' ? 'Lose' : 'Push';
-      return `Hand ${idx + 1}: ${label}`;
-    })
-    .join(' • ');
+  const resultSummary =
+    state.hasSplit || updatedHands.length > 1
+      ? handResults
+          .map((result, idx) => {
+            const label = result === 'win' ? 'Win' : result === 'loss' ? 'Lose' : 'Push';
+            return `Hand ${idx + 1}: ${label}`;
+          })
+          .join(' • ')
+      : (() => {
+          const [result] = handResults;
+          if (!result) return '';
+          if (result === 'win') return 'You win!';
+          if (result === 'loss') return 'You lose.';
+          return 'Push.';
+        })();
 
   return {
     ...state,
@@ -118,7 +128,7 @@ const finalizeRound = ({ state, updatedHands, deck, countState, endMessage }: Fi
     },
     deck: dealerDeck,
     gamePhase: 'finished',
-    lastAction: `${endMessage}. ${resultSummary}`.trim(),
+    lastAction: `${endMessage}${endMessage.endsWith('.') ? '' : '.'} ${resultSummary}`.trim(),
     runningCount: roundCounts.runningCount,
     trueCount: roundCounts.trueCount,
     cardsRemaining: roundCounts.cardsRemaining,
@@ -127,6 +137,7 @@ const finalizeRound = ({ state, updatedHands, deck, countState, endMessage }: Fi
     canDouble: false,
     canSplit: false,
     canSurrender: false,
+    hasSplit: state.hasSplit,
   };
 };
 
@@ -144,6 +155,7 @@ const initialState: GameState = {
   canDouble: false,
   canSplit: false,
   canSurrender: false,
+  hasSplit: false,
 };
 
 const GameContext = createContext<{
@@ -165,6 +177,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         trueCount: 0,
         cardsRemaining: newDeck.length,
         handResults: [],
+        hasSplit: false,
       };
     
     case 'DEAL_CARDS':
@@ -203,6 +216,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         runningCount: dealCounts.runningCount,
         trueCount: dealCounts.trueCount,
         cardsRemaining: dealCounts.cardsRemaining,
+        hasSplit: false,
       };
     
     case 'HIT':
@@ -235,6 +249,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
             trueCount: hitCounts.trueCount,
             cardsRemaining: hitCounts.cardsRemaining,
             ...getHandOptions(nextHand),
+            hasSplit: state.hasSplit,
           };
         }
 
@@ -259,6 +274,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         runningCount: hitCounts.runningCount,
         trueCount: hitCounts.trueCount,
         cardsRemaining: hitCounts.cardsRemaining,
+        hasSplit: state.hasSplit,
       };
     
     case 'STAND':
@@ -272,6 +288,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
           gamePhase: 'playing',
           lastAction: `Hand ${state.currentHandIndex + 1} stands. Playing hand ${nextIndex + 1}.`,
           ...getHandOptions(nextHand),
+          hasSplit: state.hasSplit,
         };
       }
 
@@ -311,6 +328,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         runningCount: doubleCountsAfterPlayer.runningCount,
         trueCount: doubleCountsAfterPlayer.trueCount,
         cardsRemaining: doubleCountsAfterPlayer.cardsRemaining,
+        hasSplit: state.hasSplit,
       };
 
       if (state.currentHandIndex < state.playerHands.length - 1) {
@@ -373,6 +391,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         cardsRemaining: postSplitCounts.cardsRemaining,
         ...firstHandOptions,
         handResults: [],
+        hasSplit: true,
       };
     
     default:

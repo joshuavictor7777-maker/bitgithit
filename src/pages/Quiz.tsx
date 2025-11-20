@@ -24,10 +24,17 @@ export const Quiz: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (timeLeft === 0 && !showResult) {
-      handleSubmit();
-      return;
-    }
+    const state = { score, questionsAnswered, streak, bestStreak };
+    localStorage.setItem('ratio-quiz-state', JSON.stringify(state));
+  }, [score, questionsAnswered, streak, bestStreak]);
+
+  useEffect(() => {
+    loadNewQuestion();
+  }, []);
+
+  useEffect(() => {
+    loadNewQuestion(quizType, difficulty);
+  }, [difficulty]);
 
     if (!showResult) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
@@ -35,15 +42,26 @@ export const Quiz: React.FC = () => {
     }
   }, [timeLeft, showResult]);
 
-  const loadQuestion = () => {
-    const q = generateQuizQuestion(quizType, difficulty);
-    setCurrentQuestion(q);
+  const loadNewQuestion = (
+    type: QuizQuestion['category'] = quizType,
+    level: QuizQuestion['difficulty'] = difficulty
+  ) => {
+    const question = generateQuizQuestion(type, level);
+    setCurrentQuestion(question);
     setSelectedAnswer('');
     setShowResult(false);
-    setTimeLeft(difficulty === 'easy' ? 45 : difficulty === 'medium' ? 30 : 15);
+    setTimeLeft(level === 'easy' ? 45 : level === 'medium' ? 30 : 15);
+    setIsTimerActive(true);
   };
 
-  const handleSubmit = () => {
+  const handleQuizTypeChange = (newType: QuizQuestion['category']) => {
+    if (newType === quizType) return;
+
+    setQuizType(newType);
+    loadNewQuestion(newType, difficulty);
+  };
+
+  const handleAnswerSubmit = () => {
     if (!currentQuestion || !selectedAnswer) return;
 
     const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
@@ -86,27 +104,15 @@ export const Quiz: React.FC = () => {
   const accuracy = answered > 0 ? ((score / answered) * 100).toFixed(0) : 0;
 
   return (
-    <div className={`${themeClasses.bg} min-h-screen`}>
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        {/* Header */}
-        <div className={`${themeClasses.cardBg} border ${themeClasses.border} rounded-lg p-4 mb-4`}>
-          <div className="flex items-center justify-between mb-3">
-            <h1 className={`text-2xl font-bold ${themeClasses.text}`}>Quiz</h1>
-            <div className={`flex items-center space-x-2 ${themeClasses.text}`}>
-              <Clock className="h-5 w-5" />
-              <span className="font-semibold">{timeLeft}s</span>
-            </div>
-          </div>
-
-          {/* Quiz Type Buttons */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => handleChangeType('basic-strategy')}
-              className={`flex-1 py-2 rounded-lg font-semibold transition-all ${
-                quizType === 'basic-strategy'
-                  ? `${themeClasses.accent} text-white`
-                  : `${themeClasses.surface} ${themeClasses.text}`
-              }`}
+    <div className={`max-w-4xl mx-auto px-6 py-8 ${themeClasses.bg} min-h-screen`}>
+      <div className={`${themeClasses.cardBg} backdrop-blur-sm border ${themeClasses.border} rounded-xl p-8 shadow-lg`}>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className={`text-3xl font-bold ${themeClasses.text}`}>Quiz Mode</h1>
+          <div className="flex items-center space-x-4">
+            <select
+              value={quizType}
+              onChange={(e) => handleQuizTypeChange(e.target.value as QuizQuestion['category'])}
+              className={`${themeClasses.cardBg} border ${themeClasses.border} ${themeClasses.text} rounded-lg px-4 py-2`}
             >
               Strategy
             </button>
