@@ -40,6 +40,8 @@ export const BlackjackGame: React.FC<BlackjackGameProps> = ({ onDecisionFeedback
   const handleSplit = () => handleDecision('SPLIT', { type: 'SPLIT' });
 
   const currentPlayerHand = gameState.playerHands[gameState.currentHandIndex];
+  const hasSplitHands = gameState.playerHands.length > 1;
+  const showSplitLayout = hasSplitHands || gameState.canSplit;
   const showDealerSecondCard = gameState.gamePhase === 'dealer' || gameState.gamePhase === 'finished';
 
   return (
@@ -61,39 +63,63 @@ export const BlackjackGame: React.FC<BlackjackGameProps> = ({ onDecisionFeedback
 
       {/* Player Section */}
       <div className="mb-6">
-        <h3 className={`${themeClasses.text} text-base font-semibold mb-3`}>Your Hands</h3>
-        <div className="flex flex-wrap gap-4 mb-2">
-          {gameState.playerHands.map((hand, index) => (
-            <div
-              key={index}
-              className={`border rounded-lg p-3 ${themeClasses.border} ${
-                index === gameState.currentHandIndex ? 'ring-2 ring-offset-2 ring-indigo-500' : 'opacity-80'
-              } ${themeClasses.cardBg}`}
-            >
-              <div className={`flex items-center justify-between mb-2 ${themeClasses.text}`}>
-                <span className="text-sm font-semibold">Hand {index + 1}</span>
-                {index === gameState.currentHandIndex && (
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-500 text-white">Playing</span>
-                )}
-              </div>
-              <div className="flex space-x-2 mb-2">
-                {hand.cards.map((card, idx) => (
-                  <div key={idx} className="transform scale-90">
+        <h3 className={`${themeClasses.text} text-base font-semibold mb-3`}>
+          {showSplitLayout ? 'Your Hands' : 'Your Hand'}
+        </h3>
+        {showSplitLayout ? (
+          <>
+            <div className="flex flex-wrap gap-4 mb-2">
+              {gameState.playerHands.map((hand, index) => (
+                <div
+                  key={index}
+                  className={`border rounded-lg p-3 ${themeClasses.border} ${
+                    index === gameState.currentHandIndex ? 'ring-2 ring-offset-2 ring-indigo-500' : 'opacity-80'
+                  } ${themeClasses.cardBg}`}
+                >
+                  <div className={`flex items-center justify-between mb-2 ${themeClasses.text}`}>
+                    <span className="text-sm font-semibold">Hand {index + 1}</span>
+                    {index === gameState.currentHandIndex && (
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-500 text-white">Playing</span>
+                    )}
+                  </div>
+                  <div className="flex space-x-2 mb-2">
+                    {hand.cards.map((card, idx) => (
+                      <div key={idx} className="transform scale-90">
+                        <PlayingCard card={card} />
+                      </div>
+                    ))}
+                  </div>
+                  <div className={`${themeClasses.text} font-semibold text-sm`}>
+                    Total: {hand.value}
+                    {hand.isSoft && hand.value <= 21 && ' (Soft)'}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className={`${themeClasses.text} font-semibold text-lg`}>
+              Playing Hand {gameState.currentHandIndex + 1}: {currentPlayerHand.value}
+              {currentPlayerHand.isSoft && currentPlayerHand.value <= 21 && ' (Soft)'}
+            </div>
+          </>
+        ) : (
+          <div className={`${themeClasses.cardBg} border ${themeClasses.border} rounded-lg p-4`}> 
+            <div className="flex space-x-2 mb-3">
+              {currentPlayerHand.cards.length > 0 ? (
+                currentPlayerHand.cards.map((card, idx) => (
+                  <div key={idx} className="transform scale-95">
                     <PlayingCard card={card} />
                   </div>
-                ))}
-              </div>
-              <div className={`${themeClasses.text} font-semibold text-sm`}>
-                Total: {hand.value}
-                {hand.isSoft && hand.value <= 21 && ' (Soft)'}
-              </div>
+                ))
+              ) : (
+                <span className={`${themeClasses.textSecondary} text-sm`}>No cards dealt yet</span>
+              )}
             </div>
-          ))}
-        </div>
-        <div className={`${themeClasses.text} font-semibold text-lg`}>
-          Playing Hand {gameState.currentHandIndex + 1}: {currentPlayerHand.value}
-          {currentPlayerHand.isSoft && currentPlayerHand.value <= 21 && ' (Soft)'}
-        </div>
+            <div className={`${themeClasses.text} font-semibold`}>
+              Total: {currentPlayerHand.cards.length > 0 ? currentPlayerHand.value : '--'}
+              {currentPlayerHand.isSoft && currentPlayerHand.value <= 21 && currentPlayerHand.cards.length > 0 && ' (Soft)'}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Game Controls */}
