@@ -72,6 +72,35 @@ export const BlackjackGame: React.FC<BlackjackGameProps> = ({ onDecisionFeedback
   const showSplitLayout = hasSplitHands;
   const showDealerSecondCard = gameState.gamePhase === 'dealer' || gameState.gamePhase === 'finished';
 
+  useEffect(() => {
+    if (!user.preferences.autoAdvance) return;
+
+    if (gameState.gamePhase === 'finished') {
+      const timer = setTimeout(() => {
+        handleNewGame();
+      }, 800);
+
+      return () => clearTimeout(timer);
+    }
+  }, [gameState.gamePhase, user.preferences.autoAdvance]);
+
+  useEffect(() => {
+    if (!user.preferences.autoAdvance) return;
+
+    const isReadyForDeal =
+      gameState.gamePhase === 'ready' &&
+      gameState.playerHands.every(hand => hand.cards.length === 0) &&
+      gameState.deck.length > 0;
+
+    if (isReadyForDeal) {
+      const timer = setTimeout(() => {
+        handleDealCards();
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [gameState.deck.length, gameState.gamePhase, gameState.playerHands, user.preferences.autoAdvance]);
+
   return (
     <div className={`${themeClasses.cardBg} backdrop-blur-sm border ${themeClasses.border} rounded-xl p-8 shadow-lg`}>
       {/* Dealer Section */}
