@@ -24,15 +24,15 @@ export const Quiz: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (timeLeft === 0 && !showResult) {
+    if (showResult) return;
+
+    if (timeLeft === 0) {
       handleSubmit();
       return;
     }
 
-    if (!showResult) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    }
+    const timer = setTimeout(() => setTimeLeft((prev) => prev - 1), 1000);
+    return () => clearTimeout(timer);
   }, [timeLeft, showResult]);
 
   const loadQuestion = () => {
