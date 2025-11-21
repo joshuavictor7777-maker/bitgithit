@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { User, Settings, Save, Trophy } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -14,18 +14,10 @@ export const Profile: React.FC = () => {
     preferences: { ...user.preferences }
   });
 
-  useEffect(() => {
-    setFormData({
-      name: user.name,
-      email: user.email,
-      preferences: { ...user.preferences }
-    });
-  }, [user]);
-
-  const handlePreferenceChange = <K extends keyof typeof formData.preferences>(key: K, value: typeof formData.preferences[K]) => {
-    const updatedPreferences = { ...formData.preferences, [key]: value };
-    setFormData(prev => ({ ...prev, preferences: updatedPreferences }));
-    updateProfile({ preferences: updatedPreferences });
+  const updatePreferences = (prefs: Partial<typeof formData.preferences>) => {
+    const merged = { ...formData.preferences, ...prefs };
+    setFormData(prev => ({ ...prev, preferences: merged }));
+    updateProfile({ preferences: merged });
   };
 
   const handleSave = () => {
@@ -141,7 +133,7 @@ export const Profile: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={formData.preferences.showStrategyHints}
-                    onChange={(e) => handlePreferenceChange('showStrategyHints', e.target.checked)}
+                    onChange={(e) => updatePreferences({ showStrategyHints: e.target.checked })}
                     className="w-5 h-5 text-green-600"
                   />
                 </div>
@@ -154,7 +146,7 @@ export const Profile: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={formData.preferences.enableCardCounting}
-                    onChange={(e) => handlePreferenceChange('enableCardCounting', e.target.checked)}
+                    onChange={(e) => updatePreferences({ enableCardCounting: e.target.checked })}
                     className="w-5 h-5 text-green-600"
                   />
                 </div>
@@ -167,7 +159,7 @@ export const Profile: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={formData.preferences.autoAdvance}
-                    onChange={(e) => handlePreferenceChange('autoAdvance', e.target.checked)}
+                    onChange={(e) => updatePreferences({ autoAdvance: e.target.checked })}
                     className="w-5 h-5 text-green-600"
                   />
                 </div>
@@ -176,7 +168,7 @@ export const Profile: React.FC = () => {
                   <label className={`block font-medium mb-2 ${themeClasses.text}`}>Difficulty Level</label>
                   <select
                     value={formData.preferences.difficulty}
-                    onChange={(e) => handlePreferenceChange('difficulty', e.target.value as any)}
+                    onChange={(e) => updatePreferences({ difficulty: e.target.value as any })}
                     className={`w-full ${themeClasses.cardBg} border ${themeClasses.border} ${themeClasses.text} rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500/60`}
                   >
                     <option value="beginner">Beginner</option>
