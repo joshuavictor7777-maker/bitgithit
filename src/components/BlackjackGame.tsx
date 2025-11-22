@@ -15,32 +15,6 @@ export const BlackjackGame: React.FC<BlackjackGameProps> = ({ onDecisionFeedback
   const themeClasses = getThemeClasses();
   const [showResults, setShowResults] = useState(false);
 
-  useEffect(() => {
-    if (!user.preferences.autoAdvance) return;
-    if (gameState.gamePhase !== 'finished') return;
-
-    const timer = setTimeout(() => {
-      dispatch({ type: 'NEW_GAME' });
-    }, 900);
-
-    return () => clearTimeout(timer);
-  }, [dispatch, gameState.gamePhase, user.preferences.autoAdvance]);
-
-  useEffect(() => {
-    if (!user.preferences.autoAdvance) return;
-    if (gameState.gamePhase !== 'ready') return;
-
-    const currentHand = gameState.playerHands[gameState.currentHandIndex];
-    const hasCards = currentHand?.cards.length > 0;
-    if (hasCards) return;
-
-    const timer = setTimeout(() => {
-      dispatch({ type: 'DEAL_CARDS' });
-    }, 150);
-
-    return () => clearTimeout(timer);
-  }, [dispatch, gameState.currentHandIndex, gameState.gamePhase, gameState.playerHands, user.preferences.autoAdvance]);
-
   const handleNewGame = () => {
     dispatch({ type: 'NEW_GAME' });
     setShowResults(false);
@@ -67,7 +41,7 @@ export const BlackjackGame: React.FC<BlackjackGameProps> = ({ onDecisionFeedback
 
   const currentPlayerHand = gameState.playerHands[gameState.currentHandIndex];
   const hasSplitHands = gameState.playerHands.length > 1;
-  const showSplitLayout = hasSplitHands;
+  const showSplitLayout = hasSplitHands || gameState.canSplit;
   const showDealerSecondCard = gameState.gamePhase === 'dealer' || gameState.gamePhase === 'finished';
 
   return (
