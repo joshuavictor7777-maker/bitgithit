@@ -56,6 +56,15 @@ const basicStrategyQuestions: QuizQuestion[] = [
     difficulty: 'easy',
     category: 'basic-strategy'
   },
+  {
+    id: 'bs-easy-6',
+    question: 'When should you always split Aces?',
+    options: ['Only when the dealer shows 2–6', 'Always — regardless of dealer up-card', 'Only when the true count is positive', 'Only in multi-deck games'],
+    correctAnswer: 'Always — regardless of dealer up-card',
+    explanation: 'Always split Aces. Each Ace starting hand has strong potential, and keeping them together as 12 is weak.',
+    difficulty: 'easy',
+    category: 'basic-strategy'
+  },
 
   // Medium Questions
   {
@@ -103,6 +112,60 @@ const basicStrategyQuestions: QuizQuestion[] = [
     difficulty: 'medium',
     category: 'basic-strategy'
   },
+  {
+    id: 'bs-medium-6',
+    question: 'With a hard 12, against which dealer up-cards should you HIT?',
+    options: ['2–3', '4–6', '7–A', '2–6'],
+    correctAnswer: '7–A',
+    explanation: 'Hit hard 12 versus 2 or 3 and versus 7 through Ace. Stand only against dealer 4, 5, or 6.',
+    difficulty: 'medium',
+    category: 'basic-strategy'
+  },
+  {
+    id: 'bs-medium-7',
+    question: 'When do you double down on a soft 18 (A-7)?',
+    options: ['Only vs 2', 'Only vs 2–6', 'Never — you always stand', 'Only vs 3–6'],
+    correctAnswer: 'Only vs 3–6',
+    explanation: 'Double soft 18 against dealer 3 through 6. Stand against 2,7,8 and hit against 9,10,A.',
+    difficulty: 'medium',
+    category: 'basic-strategy'
+  },
+  {
+    id: 'bs-medium-8',
+    question: 'What is the general rule for doubling hard 10?',
+    options: ['Only vs dealer 2–9', 'Only vs dealer 9 or lower', 'Only vs dealer 3–6', 'Only with a positive count'],
+    correctAnswer: 'Only vs dealer 9 or lower',
+    explanation: 'Double a hard 10 against dealer 9 or lower. Against dealer 10 or Ace, take a normal hit instead.',
+    difficulty: 'medium',
+    category: 'basic-strategy'
+  },
+  {
+    id: 'bs-medium-9',
+    question: 'When should you surrender 16 vs 10 (if surrender is allowed)?',
+    options: ['Always', 'Never', 'Only in single deck', 'Only if true count < 0'],
+    correctAnswer: 'Always',
+    explanation: 'Hard 16 against a dealer 10 is a high-loss matchup. If surrender is available, it is the optimal play.',
+    difficulty: 'medium',
+    category: 'basic-strategy'
+  },
+  {
+    id: 'bs-medium-10',
+    question: 'When should you hit soft 17 (A-6)?',
+    options: ['Always hit', 'Stand vs 2–6, hit vs 7–A', 'Double vs 3–6, hit otherwise', 'Stand vs all dealer cards'],
+    correctAnswer: 'Double vs 3–6, hit otherwise',
+    explanation: 'Soft 17 is weak. Double against dealer 3 through 6 to press the advantage, and hit against all other upcards.',
+    difficulty: 'medium',
+    category: 'basic-strategy'
+  },
+  {
+    id: 'bs-medium-11',
+    question: 'For a pair of 9s, when do you not split?',
+    options: ['Against dealer 2,7', 'Against dealer 7,10,A', 'Against dealer 2–9', 'Always split'],
+    correctAnswer: 'Against dealer 7,10,A',
+    explanation: 'Stand on 18 versus dealer 7, 10, or Ace. Split 9s against other upcards to maximize expected value.',
+    difficulty: 'medium',
+    category: 'basic-strategy'
+  },
 
   // Hard Questions
   {
@@ -129,6 +192,33 @@ const basicStrategyQuestions: QuizQuestion[] = [
     options: ['Hit', 'Stand', 'Double Down', 'Split'],
     correctAnswer: 'Double Down',
     explanation: 'Soft 17 vs 3 is a doubling situation. The dealer has a weak upcard, and you can improve safely.',
+    difficulty: 'hard',
+    category: 'basic-strategy'
+  },
+  {
+    id: 'bs-hard-4',
+    question: 'When should you never take insurance?',
+    options: ['When your hand is below 16', 'When the true count is negative', 'When the dealer shows an Ace', 'When you have a blackjack'],
+    correctAnswer: 'When the true count is negative',
+    explanation: 'Insurance is only profitable when many tens remain. A negative true count means fewer tens, so skip insurance.',
+    difficulty: 'hard',
+    category: 'basic-strategy'
+  },
+  {
+    id: 'bs-hard-5',
+    question: 'When should you stand on a hard 16 vs dealer 10?',
+    options: ['Always', 'Only if surrender isn’t allowed', 'Only at positive counts', 'Only in single-deck games'],
+    correctAnswer: 'Only at positive counts',
+    explanation: 'Basic strategy hits 16 vs 10, but when the true count is positive (favoring high cards), standing performs better.',
+    difficulty: 'hard',
+    category: 'basic-strategy'
+  },
+  {
+    id: 'bs-hard-6',
+    question: 'What is the purpose of hitting hard 12 vs dealer 2 or 3?',
+    options: ['To avoid busting too often', 'Because the dealer busts too rarely on 2–3', 'Because mathematically your expectation improves by hitting', 'Because it\'s a counting deviation'],
+    correctAnswer: 'Because mathematically your expectation improves by hitting',
+    explanation: 'Though you risk busting, simulations show hitting hard 12 against dealer 2 or 3 yields a better expected outcome than standing.',
     difficulty: 'hard',
     category: 'basic-strategy'
   }
