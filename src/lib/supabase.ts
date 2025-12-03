@@ -17,7 +17,7 @@ export interface GameStats {
   hands_won: number;
   hands_lost: number;
   hands_pushed: number;
-  blackjacks: number;
+  natural_21s: number;
   busts: number;
   strategy_correct: number;
   strategy_total: number;

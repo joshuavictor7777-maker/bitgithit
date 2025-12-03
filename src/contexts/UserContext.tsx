@@ -50,8 +50,8 @@ export interface User {
 }
 
 const defaultUser: User = {
-  name: 'Blackjack Player',
-  email: 'player@blackjack.com',
+  name: '21 Player',
+  email: 'player@21.com',
   level: 1,
   experience: 0,
   memberSince: new Date().toISOString(),

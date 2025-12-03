@@ -72,7 +72,7 @@ const basicStrategyQuestions: QuizQuestion[] = [
     question: 'You have a hard 16 and the dealer shows a 10. What should you do?',
     options: ['Hit', 'Stand', 'Double Down', 'Surrender'],
     correctAnswer: 'Surrender',
-    explanation: 'Hard 16 vs 10 is one of the worst hands in blackjack. If surrender is available, take it. Otherwise, hit.',
+    explanation: 'Hard 16 vs 10 is one of the worst hands in 21. If surrender is available, take it. Otherwise, hit.',
     difficulty: 'medium',
     category: 'basic-strategy'
   },
@@ -198,7 +198,7 @@ const basicStrategyQuestions: QuizQuestion[] = [
   {
     id: 'bs-hard-4',
     question: 'When should you never take insurance?',
-    options: ['When your hand is below 16', 'When the true count is negative', 'When the dealer shows an Ace', 'When you have a blackjack'],
+    options: ['When your hand is below 16', 'When the true count is negative', 'When the dealer shows an Ace', 'When you have a 21'],
     correctAnswer: 'When the true count is negative',
     explanation: 'Insurance is only profitable when many tens remain. A negative true count means fewer tens, so skip insurance.',
     difficulty: 'hard',

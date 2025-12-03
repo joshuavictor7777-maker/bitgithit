@@ -96,11 +96,11 @@ export const LearningModuleContent: React.FC<LearningModuleContentProps> = ({ mo
             <div className={`${themeClasses.surface} border ${themeClasses.border} rounded-lg p-6`}>
               <h3 className={`text-xl font-semibold ${themeClasses.text} mb-4`}>What is Basic Strategy?</h3>
               <p className={`${themeClasses.textSecondary} mb-4`}>
-                Basic strategy is a mathematically optimal way to play every hand in blackjack. It's based on millions of computer simulations
+                Basic strategy is a mathematically optimal way to play every hand in 21. It's based on millions of computer simulations
                 and tells you the best decision for every possible combination of your hand and the dealer's up card.
               </p>
               <p className={`${themeClasses.textSecondary} mb-4`}>
-                Using basic strategy is the mathematically optimal way to play blackjack, helping you make the best decision in every situation.
+                Using basic strategy is the mathematically optimal way to play 21, helping you make the best decision in every situation.
               </p>
               <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                 <p className="text-green-800 font-medium">
@@ -484,7 +484,7 @@ export const LearningModuleContent: React.FC<LearningModuleContentProps> = ({ mo
             <div className={`${themeClasses.surface} border ${themeClasses.border} rounded-lg p-6`}>
               <h3 className={`text-xl font-semibold ${themeClasses.text} mb-4`}>Training Management</h3>
               <p className={`${themeClasses.textSecondary} mb-4`}>
-                Tips for effective blackjack training and skill development:
+                Tips for effective 21 training and skill development:
               </p>
               <h4 className={`text-lg font-semibold ${themeClasses.text} mb-3`}>Training Principles:</h4>
               <ul className={`${themeClasses.textSecondary} space-y-2 mb-6`}>
@@ -526,7 +526,7 @@ export const LearningModuleContent: React.FC<LearningModuleContentProps> = ({ mo
             <div className={`${themeClasses.surface} border ${themeClasses.border} rounded-lg p-6`}>
               <h3 className={`text-xl font-semibold ${themeClasses.text} mb-4`}>Final Mastery Exam</h3>
               <p className={`${themeClasses.textSecondary} mb-6`}>
-                Test your comprehensive blackjack mastery:
+                Test your comprehensive 21 mastery:
               </p>
 
               <div className="space-y-4">
@@ -555,7 +555,7 @@ export const LearningModuleContent: React.FC<LearningModuleContentProps> = ({ mo
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <p className="text-green-900 font-semibold mb-2">After Passing</p>
                   <p className="text-sm text-green-800 mb-2">
-                    You'll have mastered the fundamental mathematical and strategic principles of blackjack!
+                    You'll have mastered the fundamental mathematical and strategic principles of 21!
                   </p>
                   <p className="text-sm text-green-700 font-medium">
                     Ready to challenge yourself in the Play section with live games.

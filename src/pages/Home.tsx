@@ -14,7 +14,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
     {
       icon: Play,
       title: 'Play Mode',
-      description: 'Practice realistic blackjack gameplay with strategy hints and card counting',
+      description: 'Practice realistic 21 gameplay with strategy hints and card counting',
       color: 'from-green-500 to-emerald-600',
       page: 'play' as Page,
     },
@@ -53,7 +53,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
             </h1>
           </div>
           <p className={`text-lg ${themeClasses.textSecondary} max-w-2xl mx-auto`}>
-            Master blackjack strategy and card counting with interactive training
+            Master 21 strategy and card counting with interactive training
           </p>
         </div>
 

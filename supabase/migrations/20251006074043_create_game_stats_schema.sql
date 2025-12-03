@@ -1,9 +1,9 @@
 /*
-  # Blackjack Training App Database Schema
+  # 21 Training App Database Schema
 
   ## Overview
   Creates tables for tracking user progress, game statistics, learning modules, and quiz performance
-  for a blackjack training application.
+  for a 21 training application.
 
   ## New Tables
   
@@ -25,7 +25,7 @@
   - `hands_won` (integer) - Total hands won
   - `hands_lost` (integer) - Total hands lost
   - `hands_pushed` (integer) - Total hands pushed
-  - `blackjacks` (integer) - Total natural blackjacks
+  - `natural_21s` (integer) - Total natural 21s
   - `busts` (integer) - Total busted hands
   - `strategy_correct` (integer) - Correct strategy decisions
   - `strategy_total` (integer) - Total strategy decisions
@@ -79,7 +79,7 @@
 -- Create user_profiles table
 CREATE TABLE IF NOT EXISTS user_profiles (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  name text NOT NULL DEFAULT 'Blackjack Player',
+  name text NOT NULL DEFAULT '21 Player',
   email text UNIQUE,
   level integer NOT NULL DEFAULT 1,
   experience integer NOT NULL DEFAULT 0,
@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS game_stats (
   hands_won integer NOT NULL DEFAULT 0,
   hands_lost integer NOT NULL DEFAULT 0,
   hands_pushed integer NOT NULL DEFAULT 0,
-  blackjacks integer NOT NULL DEFAULT 0,
+  natural_21s integer NOT NULL DEFAULT 0,
   busts integer NOT NULL DEFAULT 0,
   strategy_correct integer NOT NULL DEFAULT 0,
   strategy_total integer NOT NULL DEFAULT 0,

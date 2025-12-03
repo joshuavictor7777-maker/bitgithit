@@ -29,7 +29,7 @@ export const CardCountingGuide: React.FC = () => {
       <div className="bg-green-50 border border-green-200 rounded-lg p-6">
         <h3 className="text-xl font-semibold text-gray-800 mb-4">Why It Works</h3>
         <ul className="text-gray-700 space-y-2">
-          <li>• More blackjacks (3:2 payout)</li>
+          <li>• More 21s (3:2 payout)</li>
           <li>• Better double down opportunities</li>
           <li>• Dealer busts more often on stiff hands</li>
           <li>• Insurance becomes profitable at high counts</li>
