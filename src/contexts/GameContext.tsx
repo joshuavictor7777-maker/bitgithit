@@ -186,14 +186,14 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         value: calculateHandValue([playerCard1, playerCard2]),
         isSoft: [playerCard1, playerCard2].some(card => card.rank === 'A')
       };
-      
+
       const newDealerHand = {
         cards: [dealerCard1, dealerCard2],
         value: calculateHandValue([dealerCard1]),
         isSoft: dealerCard1.rank === 'A'
       };
-      
-      return {
+
+      const dealtState: GameState = {
         ...state,
         playerHands: [newPlayerHand],
         dealerHand: newDealerHand,
@@ -204,6 +204,18 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         trueCount: dealCounts.trueCount,
         cardsRemaining: dealCounts.cardsRemaining,
       };
+
+      if (newPlayerHand.value === 21) {
+        return finalizeRound({
+          state: dealtState,
+          updatedHands: [newPlayerHand],
+          deck: dealtState.deck,
+          countState: dealCounts,
+          endMessage: 'You have 21. Dealer playing.',
+        });
+      }
+
+      return dealtState;
     
     case 'HIT':
       const hitCard = state.deck[0];
@@ -244,6 +256,39 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
           deck: state.deck.slice(1),
           countState: hitCounts,
           endMessage: 'Bust! Evaluating results.',
+        });
+      }
+
+      if (newValue === 21) {
+        const hitToTwentyOneBaseState: GameState = {
+          ...state,
+          playerHands: updatedHands,
+          deck: state.deck.slice(1),
+          runningCount: hitCounts.runningCount,
+          trueCount: hitCounts.trueCount,
+          cardsRemaining: hitCounts.cardsRemaining,
+          hasSplit: state.hasSplit,
+        };
+
+        if (state.currentHandIndex < state.playerHands.length - 1) {
+          const nextIndex = state.currentHandIndex + 1;
+          const nextHand = state.playerHands[nextIndex];
+
+          return {
+            ...hitToTwentyOneBaseState,
+            currentHandIndex: nextIndex,
+            gamePhase: 'playing',
+            lastAction: `Hand ${state.currentHandIndex + 1} hits 21. Playing hand ${nextIndex + 1}.`,
+            ...getHandOptions(nextHand),
+          };
+        }
+
+        return finalizeRound({
+          state: hitToTwentyOneBaseState,
+          updatedHands,
+          deck: hitToTwentyOneBaseState.deck,
+          countState: hitCounts,
+          endMessage: 'Reached 21. Dealer playing.',
         });
       }
 
