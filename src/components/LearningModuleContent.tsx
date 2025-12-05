@@ -73,6 +73,68 @@ export const LearningModuleContent: React.FC<LearningModuleContentProps> = ({ mo
           </div>
         );
 
+      case 'basic-rules-quiz':
+        return (
+          <div className="space-y-6">
+            <div className={`${themeClasses.surface} border ${themeClasses.border} rounded-lg p-6`}>
+              <h3 className={`text-xl font-semibold ${themeClasses.text} mb-4`}>Basic Rules Quiz - Key Concepts</h3>
+              <p className={`${themeClasses.textSecondary} mb-6`}>
+                Test your understanding of fundamental 21 rules:
+              </p>
+
+              <div className="space-y-4">
+                <div className={`${themeClasses.surface} border ${themeClasses.border} rounded-lg p-4`}>
+                  <p className="font-semibold mb-2">Objective of the Game</p>
+                  <p className={`${themeClasses.textSecondary} text-sm`}>
+                    Get a hand total as close to 21 as possible without going over (busting), while beating the dealer's hand.
+                  </p>
+                </div>
+
+                <div className={`${themeClasses.surface} border ${themeClasses.border} rounded-lg p-4`}>
+                  <p className="font-semibold mb-2">Card Values</p>
+                  <ul className={`${themeClasses.textSecondary} space-y-1 text-sm`}>
+                    <li>• Number cards (2-10): Worth their face value</li>
+                    <li>• Face cards (J, Q, K): Worth 10 points</li>
+                    <li>• Aces: Worth 1 or 11 (whichever is better for your hand)</li>
+                  </ul>
+                </div>
+
+                <div className={`${themeClasses.surface} border ${themeClasses.border} rounded-lg p-4`}>
+                  <p className="font-semibold mb-2">Blackjack (Natural 21)</p>
+                  <p className={`${themeClasses.textSecondary} text-sm`}>
+                    When you're dealt exactly 2 cards totaling 21 (Ace + 10-value card). This is the best possible hand and beats any other hand.
+                  </p>
+                </div>
+
+                <div className={`${themeClasses.surface} border ${themeClasses.border} rounded-lg p-4`}>
+                  <p className="font-semibold mb-2">Busting</p>
+                  <p className={`${themeClasses.textSecondary} text-sm`}>
+                    When your hand total exceeds 21. If you bust, you lose immediately. The dealer wins even if they also bust.
+                  </p>
+                </div>
+
+                <div className={`${themeClasses.surface} border ${themeClasses.border} rounded-lg p-4`}>
+                  <p className="font-semibold mb-2">Soft vs Hard Hands</p>
+                  <ul className={`${themeClasses.textSecondary} space-y-1 text-sm`}>
+                    <li>• Soft Hand: Contains an Ace counted as 11 (can't bust on next card)</li>
+                    <li>• Hard Hand: No Ace, or Ace counted as 1 (can bust on next card)</li>
+                  </ul>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-blue-900 font-semibold mb-2">Player Actions</p>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>• Hit: Take another card</li>
+                    <li>• Stand: Keep your current hand</li>
+                    <li>• Double Down: Double your bet and take one more card</li>
+                    <li>• Split: Divide a pair into two separate hands</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
       case 'dealer-rules':
         return (
           <div className="space-y-6">
