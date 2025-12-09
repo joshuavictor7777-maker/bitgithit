@@ -58,9 +58,12 @@ export interface XpGain {
 }
 
 export const getXpForLevel = (level: number) => {
-  const base = 150;
-  const growth = 60;
-  return base + (level - 1) * growth;
+  const easyStart = 30;
+  const tierSize = 5;
+  const tier = Math.floor((level - 1) / tierSize);
+  const increment = 10 + tier * 10;
+
+  return easyStart + (level - 1) * increment;
 };
 
 const defaultUser: User = {

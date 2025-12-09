@@ -14,7 +14,7 @@ export const BlackjackGame: React.FC<BlackjackGameProps> = ({ onDecisionFeedback
   const { gameState, dispatch } = useGame();
   const { getThemeClasses } = useTheme();
   const themeClasses = getThemeClasses();
-  const { addExperience, user } = useUser();
+  const { addExperience } = useUser();
   const [showResults, setShowResults] = useState(false);
   const lastRoundSignature = useRef<string>('');
 
@@ -32,9 +32,8 @@ export const BlackjackGame: React.FC<BlackjackGameProps> = ({ onDecisionFeedback
     const feedback = recordStrategyDecision(gameState, action);
     onDecisionFeedback?.(feedback);
     dispatch(dispatchAction);
-    if (action !== 'DEAL') {
-      const base = feedback?.isOptimal ? 12 : 6;
-      addExperience(base, feedback?.isOptimal ? 'Optimal play' : 'Practice action');
+    if (action !== 'DEAL' && feedback?.isOptimal) {
+      addExperience(14, 'Optimal play');
     }
   };
 
@@ -53,11 +52,10 @@ export const BlackjackGame: React.FC<BlackjackGameProps> = ({ onDecisionFeedback
     lastRoundSignature.current = signature;
 
     const wins = gameState.handResults.filter(result => result === 'win').length;
-    const pushes = gameState.handResults.filter(result => result === 'push').length;
-    const accuracyBonus = Math.round((user.stats.strategyAccuracy || 0) * 10);
-    const totalXp = wins * 15 + pushes * 5 + 10 + accuracyBonus;
-    addExperience(totalXp, 'Round complete');
-  }, [addExperience, gameState.dealerHand.cards.length, gameState.gamePhase, gameState.handResults, gameState.playerHands.length, user.stats.strategyAccuracy]);
+    if (wins > 0) {
+      addExperience(wins * 20, 'Winning hand');
+    }
+  }, [addExperience, gameState.dealerHand.cards.length, gameState.gamePhase, gameState.handResults, gameState.playerHands.length]);
 
   const currentPlayerHand = gameState.playerHands[gameState.currentHandIndex];
   const hasSplitHands = gameState.playerHands.length > 1;
