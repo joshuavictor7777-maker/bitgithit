@@ -2,6 +2,7 @@ import React from 'react';
 import { Home, User, BarChart3, BookOpen, Brain, Spade, Moon, Sun } from 'lucide-react';
 import { Page } from '../App';
 import { useTheme } from '../contexts/ThemeContext';
+import { LevelBadge } from './LevelBadge';
 
 interface NavigationProps {
   currentPage: Page;
@@ -31,6 +32,9 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPage, onNavigate 
           </div>
           
           <div className="flex items-center space-x-1">
+            <div className="hidden md:block mr-3">
+              <LevelBadge compact />
+            </div>
             {navItems.map((item) => {
               const isActive = currentPage === item.id;
               return (

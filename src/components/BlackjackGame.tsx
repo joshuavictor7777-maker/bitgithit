@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { PlayingCard } from './PlayingCard';
 import { useGame } from '../contexts/GameContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { PlayerAction, recordStrategyDecision, StrategyFeedback } from '../utils/strategy';
 import { RefreshCw } from 'lucide-react';
+import { useUser } from '../contexts/UserContext';
 
 interface BlackjackGameProps {
   onDecisionFeedback?: (feedback: StrategyFeedback | null) => void;
@@ -13,7 +14,9 @@ export const BlackjackGame: React.FC<BlackjackGameProps> = ({ onDecisionFeedback
   const { gameState, dispatch } = useGame();
   const { getThemeClasses } = useTheme();
   const themeClasses = getThemeClasses();
+  const { addExperience } = useUser();
   const [showResults, setShowResults] = useState(false);
+  const lastRoundSignature = useRef<string>('');
 
   const handleNewGame = () => {
     dispatch({ type: 'NEW_GAME' });
@@ -29,6 +32,9 @@ export const BlackjackGame: React.FC<BlackjackGameProps> = ({ onDecisionFeedback
     const feedback = recordStrategyDecision(gameState, action);
     onDecisionFeedback?.(feedback);
     dispatch(dispatchAction);
+    if (action !== 'DEAL' && feedback?.isOptimal) {
+      addExperience(14, 'Optimal play');
+    }
   };
 
   const handleHit = () => handleDecision('HIT', { type: 'HIT' });
@@ -38,6 +44,18 @@ export const BlackjackGame: React.FC<BlackjackGameProps> = ({ onDecisionFeedback
   const handleDouble = () => handleDecision('DOUBLE', { type: 'DOUBLE' });
 
   const handleSplit = () => handleDecision('SPLIT', { type: 'SPLIT' });
+
+  useEffect(() => {
+    if (gameState.gamePhase !== 'finished' || gameState.handResults.length === 0) return;
+    const signature = `${gameState.handResults.join('-')}-${gameState.dealerHand.cards.length}-${gameState.playerHands.length}`;
+    if (signature === lastRoundSignature.current) return;
+    lastRoundSignature.current = signature;
+
+    const wins = gameState.handResults.filter(result => result === 'win').length;
+    if (wins > 0) {
+      addExperience(wins * 20, 'Winning hand');
+    }
+  }, [addExperience, gameState.dealerHand.cards.length, gameState.gamePhase, gameState.handResults, gameState.playerHands.length]);
 
   const currentPlayerHand = gameState.playerHands[gameState.currentHandIndex];
   const hasSplitHands = gameState.playerHands.length > 1;

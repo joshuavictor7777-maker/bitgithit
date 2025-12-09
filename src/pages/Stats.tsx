@@ -2,6 +2,7 @@ import React from 'react';
 import { Target, Award } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { LevelBadge } from '../components/LevelBadge';
 
 export const Stats: React.FC = () => {
   const { user } = useUser();
@@ -17,6 +18,10 @@ export const Stats: React.FC = () => {
       <div className="max-w-5xl mx-auto px-6 py-10">
         <h1 className={`text-4xl font-bold ${themeClasses.text} mb-3`}>Your Performance</h1>
         <p className={`${themeClasses.textSecondary} mb-10`}>Track your progress and mastery across all training modes</p>
+
+        <div className="mb-6">
+          <LevelBadge />
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           <div className={`${themeClasses.cardBg} border ${themeClasses.border} rounded-lg p-6`}>

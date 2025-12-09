@@ -13,4 +13,8 @@
       transform: translateY(0);
     }
   }
+
+  .animate-slide-up {
+    animation: toastFade 0.25s ease-out;
+  }
 }

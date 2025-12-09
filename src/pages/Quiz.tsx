@@ -5,7 +5,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { generateQuizQuestion, QuizQuestion } from '../utils/quizGenerator';
 
 export const Quiz: React.FC = () => {
-  const { user, updateQuizStats } = useUser();
+  const { user, updateQuizStats, addExperience } = useUser();
   const { getThemeClasses } = useTheme();
   const themeClasses = getThemeClasses();
 
@@ -52,6 +52,7 @@ export const Quiz: React.FC = () => {
     if (isCorrect) {
       setScore(score + 1);
       setStreak(streak + 1);
+      addExperience(18, 'Quiz correct');
     } else {
       setStreak(0);
     }

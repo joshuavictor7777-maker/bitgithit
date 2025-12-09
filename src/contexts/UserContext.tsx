@@ -49,6 +49,23 @@ export interface User {
   preferences: UserPreferences;
 }
 
+export interface XpGain {
+  id: string;
+  amount: number;
+  reason?: string;
+  level?: number;
+  levelUp?: boolean;
+}
+
+export const getXpForLevel = (level: number) => {
+  const easyStart = 30;
+  const tierSize = 5;
+  const tier = Math.floor((level - 1) / tierSize);
+  const increment = 10 + tier * 10;
+
+  return easyStart + (level - 1) * increment;
+};
+
 const defaultUser: User = {
   name: '21 Player',
   email: 'player@21.com',
@@ -84,10 +101,16 @@ const UserContext = createContext<{
   updateStats: (stats: Partial<UserStats>) => void;
   updateQuizStats: (type: 'basicStrategy' | 'cardCounting', correct: boolean) => void;
   addAchievement: (achievement: Omit<Achievement, 'unlockedAt'>) => void;
+  addExperience: (amount: number, reason?: string) => void;
+  xpGains: XpGain[];
+  dismissXpGain: (id: string) => void;
+  nextLevelXp: number;
 } | null>(null);
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User>(defaultUser);
+  const [xpGains, setXpGains] = useState<XpGain[]>([]);
+  const nextLevelXp = getXpForLevel(user.level);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('ratio-user');
@@ -162,13 +185,54 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }));
   };
 
+  const addExperience = (amount: number, reason?: string) => {
+    setUser(prev => {
+      let xpPool = prev.experience + amount;
+      let newLevel = prev.level;
+      let leveledUp = false;
+
+      let required = getXpForLevel(newLevel);
+      while (xpPool >= required) {
+        xpPool -= required;
+        newLevel += 1;
+        required = getXpForLevel(newLevel);
+        leveledUp = true;
+      }
+
+      setXpGains(current => [
+        ...current,
+        {
+          id: crypto.randomUUID(),
+          amount,
+          reason,
+          level: newLevel,
+          levelUp: leveledUp,
+        },
+      ]);
+
+      return {
+        ...prev,
+        level: newLevel,
+        experience: xpPool,
+      };
+    });
+  };
+
+  const dismissXpGain = (id: string) => {
+    setXpGains(prev => prev.filter(gain => gain.id !== id));
+  };
+
   return (
-    <UserContext.Provider value={{ 
-      user, 
-      updateProfile, 
-      updateStats, 
-      updateQuizStats, 
-      addAchievement 
+    <UserContext.Provider value={{
+      user,
+      updateProfile,
+      updateStats,
+      updateQuizStats,
+      addAchievement,
+      addExperience,
+      xpGains,
+      dismissXpGain,
+      nextLevelXp,
     }}>
       {children}
     </UserContext.Provider>

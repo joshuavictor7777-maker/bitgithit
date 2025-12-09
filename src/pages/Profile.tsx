@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { User, Settings, Save, Trophy } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { LevelBadge } from '../components/LevelBadge';
 
 export const Profile: React.FC = () => {
   const { user, updateProfile } = useUser();
@@ -37,19 +38,12 @@ export const Profile: React.FC = () => {
               </div>
 
               <div className="space-y-4">
+                <LevelBadge />
                 <div className={`${themeClasses.surface} flex items-center justify-between p-3 rounded-lg border ${themeClasses.border}`}>
                   <span className={themeClasses.textSecondary}>Member Since</span>
                   <span className={themeClasses.text}>
                     {new Date(user.memberSince).toLocaleDateString()}
                   </span>
-                </div>
-                <div className={`${themeClasses.surface} flex items-center justify-between p-3 rounded-lg border ${themeClasses.border}`}>
-                  <span className={themeClasses.textSecondary}>Level</span>
-                  <span className="text-green-500 font-semibold">{user.level}</span>
-                </div>
-                <div className={`${themeClasses.surface} flex items-center justify-between p-3 rounded-lg border ${themeClasses.border}`}>
-                  <span className={themeClasses.textSecondary}>Total XP</span>
-                  <span className={themeClasses.text}>{user.experience.toLocaleString()}</span>
                 </div>
               </div>
             </div>

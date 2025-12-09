@@ -10,6 +10,7 @@ import { GameProvider } from './contexts/GameContext';
 import { UserProvider } from './contexts/UserContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LearningProvider } from './contexts/LearningContext';
+import { XpToastStack } from './components/XpToastStack';
 
 export type Page = 'home' | 'profile' | 'stats' | 'learn' | 'quiz' | 'play';
 
@@ -42,6 +43,7 @@ function App() {
           <LearningProvider>
             <div className="min-h-screen">
               <Navigation currentPage={currentPage} onNavigate={setCurrentPage} />
+              <XpToastStack />
               <main className="pt-16">
                 {renderPage()}
               </main>
