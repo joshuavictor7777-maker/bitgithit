@@ -3,6 +3,7 @@ import { BookOpen, CheckCircle, ChevronRight } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLearning } from '../contexts/LearningContext';
 import { LearningModuleContent } from '../components/LearningModuleContent';
+import { BasicRulesQuiz } from '../components/BasicRulesQuiz';
 
 export const Learn: React.FC = () => {
   const { getThemeClasses } = useTheme();
@@ -26,6 +27,8 @@ export const Learn: React.FC = () => {
     const module = modules.find(m => m.id === viewingModule);
     if (!module) return null;
 
+    const isBasicRulesQuiz = module.id === 'basic-rules-quiz';
+
     return (
       <div className={`${themeClasses.bg} min-h-screen`}>
         <div className="max-w-2xl mx-auto px-4 py-6">
@@ -44,13 +47,25 @@ export const Learn: React.FC = () => {
               <LearningModuleContent moduleId={module.id} themeClasses={themeClasses} />
             </div>
 
-            {!module.completed && (
-              <button
-                onClick={() => handleCompleteModule(module.id)}
-                className={`w-full py-3 rounded-lg font-semibold text-white ${themeClasses.accent} hover:opacity-90`}
-              >
-                Mark as Complete
-              </button>
+            {isBasicRulesQuiz ? (
+              <div className="space-y-4">
+                {!module.completed && (
+                  <p className={`${themeClasses.textSecondary} text-sm`}>
+                    You must answer every question correctly in one attempt to complete this module. Each run draws new questions
+                    to keep practice varied.
+                  </p>
+                )}
+                <BasicRulesQuiz themeClasses={themeClasses} onComplete={() => handleCompleteModule(module.id)} />
+              </div>
+            ) : (
+              !module.completed && (
+                <button
+                  onClick={() => handleCompleteModule(module.id)}
+                  className={`w-full py-3 rounded-lg font-semibold text-white ${themeClasses.accent} hover:opacity-90`}
+                >
+                  Mark as Complete
+                </button>
+              )
             )}
 
             {module.completed && (
